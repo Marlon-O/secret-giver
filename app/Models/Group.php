@@ -3,11 +3,12 @@
 namespace App\Models;
 
 use App\Exceptions\ImpossibleDrawException;
-use App\Services\SecretSantaDrawer;
+use App\Services\SecretGiverDrawer;
 use Database\Factories\GroupFactory;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\HasMany;
+use Illuminate\Support\Collection;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Str;
 
@@ -16,7 +17,7 @@ class Group extends Model
     /** @use HasFactory<GroupFactory> */
     use HasFactory;
 
-    protected $fillable = ['name', 'budget', 'exchange_date'];
+    protected $fillable = ['name', 'budget', 'exchange_date', 'wishlists_required'];
 
     protected $hidden = ['admin_token_hash'];
 
@@ -25,6 +26,7 @@ class Group extends Model
         return [
             'exchange_date' => 'date',
             'drawn_at' => 'datetime',
+            'wishlists_required' => 'boolean',
         ];
     }
 
@@ -61,6 +63,30 @@ class Group extends Model
         return $this->drawn_at !== null;
     }
 
+    /**
+     * When wishlists are required, people claim their name before the draw so they can write one first.
+     */
+    public function canBeClaimed(): bool
+    {
+        return $this->isDrawn() || $this->wishlists_required;
+    }
+
+    /**
+     * Names still owing a wishlist, which blocks the draw when wishlists are required.
+     *
+     * @return Collection<int, string>
+     */
+    public function missingWishlists(): Collection
+    {
+        if (! $this->wishlists_required) {
+            return collect();
+        }
+
+        return $this->participants()
+            ->where(fn ($query) => $query->whereNull('wishlist')->orWhere('wishlist', ''))
+            ->pluck('name');
+    }
+
     public function participants(): HasMany
     {
         return $this->hasMany(Participant::class)->orderBy('name');
@@ -74,7 +100,7 @@ class Group extends Model
     /**
      * @throws ImpossibleDrawException
      */
-    public function performDraw(SecretSantaDrawer $drawer): void
+    public function performDraw(SecretGiverDrawer $drawer): void
     {
         $assignments = $drawer->draw(
             $this->participants()->pluck('id')->all(),
@@ -86,6 +112,11 @@ class Group extends Model
         DB::transaction(function () use ($assignments) {
             foreach ($assignments as $giverId => $receiverId) {
                 $this->participants()->whereKey($giverId)->update(['assigned_to_id' => $receiverId]);
+            }
+
+            // Names were claimed to write wishlists; reopen them so everyone taps their name to see their match.
+            if ($this->wishlists_required) {
+                $this->participants()->update(['claim_token_hash' => null, 'claimed_at' => null]);
             }
 
             $this->forceFill(['drawn_at' => now()])->save();

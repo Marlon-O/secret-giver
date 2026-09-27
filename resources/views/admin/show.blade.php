@@ -3,10 +3,12 @@
     $groupLink = route('group.show', $group);
     $drawn = $group->isDrawn();
     $claimedCount = $participants->filter->isClaimed()->count();
+    $collectingWishlists = $group->wishlists_required && ! $drawn;
+    $wishlistCount = $participants->count() - $missingWishlists->count();
 @endphp
 
 <x-layouts.app :title="$group->name">
-    <div x-data x-init="window.santaGroups.remember(@js(['slug' => $group->slug, 'name' => $group->name, 'adminUrl' => $adminLink]))"></div>
+    <div x-data x-init="window.giverGroups.remember(@js(['slug' => $group->slug, 'name' => $group->name, 'adminUrl' => $adminLink]))"></div>
 
     <section class="mb-6">
         <p class="label !text-twine">Organizer view</p>
@@ -56,9 +58,32 @@
                         <div class="h-full rounded-full bg-pine" style="width: {{ $participants->count() ? round($claimedCount / $participants->count() * 100) : 0 }}%"></div>
                     </div>
                 </div>
+            @elseif ($collectingWishlists && $missingWishlists->isNotEmpty())
+                <h2 class="section-title">Collecting wishlists</h2>
+                <p class="mt-1 text-ink-soft">Send this link to everyone. Each person taps their own name and writes a wishlist. You can draw once everyone has.</p>
+
+                <div x-data="{ label: 'Share group link' }" class="mt-4 flex flex-col gap-2 sm:flex-row">
+                    <input readonly value="{{ $groupLink }}" aria-label="Group link" class="input font-mono text-sm" @focus="$el.select()">
+                    <button type="button" class="btn-primary shrink-0"
+                            @click="label = await window.shareLink(@js($groupLink), @js($group->name)); setTimeout(() => label = 'Share group link', 2000)"
+                            x-text="label">Share group link</button>
+                </div>
+
+                <div class="mt-5">
+                    <div class="flex justify-between text-sm">
+                        <span class="font-semibold">{{ $wishlistCount }} of {{ $participants->count() }} wishlists in</span>
+                    </div>
+                    <div class="mt-2 h-2 overflow-hidden rounded-full bg-ink/10" role="presentation">
+                        <div class="h-full rounded-full bg-pine" style="width: {{ $participants->count() ? round($wishlistCount / $participants->count() * 100) : 0 }}%"></div>
+                    </div>
+                    <p class="mt-2 text-sm text-ink-soft">Waiting on {{ $missingWishlists->join(', ', ' and ') }}.</p>
+                </div>
+
+                <button class="btn-primary mt-5 w-full" disabled>Draw names</button>
             @else
                 <h2 class="section-title">Ready to draw?</h2>
                 <p class="mt-1 text-ink-soft">
+                    @if ($collectingWishlists) Everyone has written a wishlist. @endif
                     Check the names and rules below first. Once you draw, the list is locked until you undo the draw.
                     You won't see who got whom, so you can play too.
                 </p>
@@ -86,6 +111,16 @@
                                     {{ $person->isClaimed() ? 'Has seen their match' : "Hasn't opened the link yet" }}
                                     · {{ filled($person->wishlist) ? 'Wishlist written' : 'No wishlist yet' }}
                                 </p>
+                            @elseif ($collectingWishlists)
+                                <p class="text-sm text-ink-soft">
+                                    @if (filled($person->wishlist))
+                                        Wishlist written
+                                    @elseif ($person->isClaimed())
+                                        Picked their name, no wishlist yet
+                                    @else
+                                        Hasn't opened the link yet
+                                    @endif
+                                </p>
                             @endif
                         </div>
 
@@ -94,7 +129,8 @@
                                 @csrf @method('DELETE')
                                 <button class="btn-link" aria-label="Remove {{ $person->name }}">Remove</button>
                             </form>
-                        @elseif ($person->isClaimed())
+                        @endif
+                        @if ($person->isClaimed() && ($drawn || $collectingWishlists))
                             <form method="POST" action="{{ route('admin.claims.destroy', [$group, $token, $person]) }}"
                                   x-data @submit="if (! confirm(@js("Reset {$person->name}? Whoever claimed this name will lose access on their device, and anyone can claim it again."))) $event.preventDefault()">
                                 @csrf @method('DELETE')
@@ -116,7 +152,7 @@
                 @endunless
             @endunless
 
-            @if ($drawn)
+            @if ($drawn || $collectingWishlists)
                 <p class="mt-4 text-sm text-ink-soft">If someone tapped the wrong name, reset it so the right person can claim it.</p>
             @endif
         </section>
@@ -185,7 +221,7 @@
         {{-- Details --}}
         <details class="card group" @if ($errors->hasAny(['budget', 'exchange_date']) || old('_details')) open @endif>
             <summary class="section-title flex cursor-pointer list-none items-center justify-between">
-                Budget, date and name
+                Budget, date, name and wishlists
                 <span class="text-base text-ink-soft transition-transform group-open:rotate-180" aria-hidden="true">▾</span>
             </summary>
             <form method="POST" action="{{ route('admin.update', [$group, $token]) }}" class="mt-5 space-y-4">
@@ -205,6 +241,21 @@
                         <input id="exchange_date" name="exchange_date" type="date" class="input" value="{{ old('exchange_date', $group->exchange_date?->toDateString()) }}">
                     </div>
                 </div>
+                <label class="flex items-start gap-3">
+                    <input type="hidden" name="wishlists_required" value="0">
+                    <input type="checkbox" name="wishlists_required" value="1" class="mt-1 size-4 shrink-0 accent-pine"
+                           @checked(old('wishlists_required', $group->wishlists_required)) @disabled($drawn)>
+                    <span>
+                        <span class="block font-semibold">Collect wishlists first</span>
+                        <span class="block text-sm text-ink-soft">
+                            @if ($drawn)
+                                Names are drawn, so this can't change now.
+                            @else
+                                Everyone picks their name and writes a wishlist before you can draw.
+                            @endif
+                        </span>
+                    </span>
+                </label>
                 <x-errors :keys="old('_details') ? ['name', 'budget', 'exchange_date'] : ['budget', 'exchange_date']" />
                 <button class="btn-quiet w-full">Save details</button>
             </form>

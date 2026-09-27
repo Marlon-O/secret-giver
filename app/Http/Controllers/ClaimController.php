@@ -14,7 +14,7 @@ class ClaimController extends Controller
 {
     public function index(Request $request, Group $group): View|RedirectResponse
     {
-        if ($group->isDrawn() && ClaimCookie::resolve($request, $group)) {
+        if ($group->canBeClaimed() && ClaimCookie::resolve($request, $group)) {
             return redirect()->route('group.me', $group);
         }
 
@@ -26,7 +26,7 @@ class ClaimController extends Controller
 
     public function claim(Request $request, Group $group, Participant $participant): RedirectResponse
     {
-        if (! $group->isDrawn()) {
+        if (! $group->canBeClaimed()) {
             return redirect()->route('group.show', $group);
         }
 
@@ -51,8 +51,12 @@ class ClaimController extends Controller
     {
         $me = ClaimCookie::resolve($request, $group);
 
-        if (! $me || ! $group->isDrawn()) {
+        if (! $me || ! $group->canBeClaimed()) {
             return redirect()->route('group.show', $group);
+        }
+
+        if (! $group->isDrawn()) {
+            return view('group.wishlist', ['group' => $group, 'me' => $me]);
         }
 
         return view('group.reveal', [
@@ -69,7 +73,9 @@ class ClaimController extends Controller
         abort_unless($me, 403);
 
         $me->update($request->validate([
-            'wishlist' => ['nullable', 'string', 'max:2000'],
+            'wishlist' => [$group->wishlists_required ? 'required' : 'nullable', 'string', 'max:2000'],
+        ], [
+            'wishlist.required' => 'Your Secret Giver needs a few ideas. Add at least one.',
         ]));
 
         return redirect()->route('group.me', $group)->with('status', 'Wishlist saved.');

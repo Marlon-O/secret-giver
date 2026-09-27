@@ -8,7 +8,7 @@ it('shows the landing page', function () {
 
 it('creates a group and redirects to the admin link', function () {
     $response = $this->post('/groups', [
-        'name' => 'Family Christmas',
+        'name' => 'Family Gift Swap',
         'budget' => '$30',
         'exchange_date' => '2026-12-24',
         'participants' => ['Alice', ' Bob ', '', 'Carol'],
@@ -16,12 +16,12 @@ it('creates a group and redirects to the admin link', function () {
 
     $group = Group::firstOrFail();
 
-    expect($group->name)->toBe('Family Christmas')
+    expect($group->name)->toBe('Family Gift Swap')
         ->and($group->participants->pluck('name')->all())->toBe(['Alice', 'Bob', 'Carol'])
         ->and($group->slug)->toHaveLength(12);
 
     $response->assertRedirectContains("/g/{$group->slug}/admin/");
-    $this->get($response->headers->get('Location'))->assertOk()->assertSee('Family Christmas');
+    $this->get($response->headers->get('Location'))->assertOk()->assertSee('Family Gift Swap');
 });
 
 it('requires at least three distinct names', function (array $names, string $errorKey) {

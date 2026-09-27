@@ -6,7 +6,7 @@ use App\Exceptions\ImpossibleDrawException;
 use App\Models\Exclusion;
 use App\Models\Group;
 use App\Models\Participant;
-use App\Services\SecretSantaDrawer;
+use App\Services\SecretGiverDrawer;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Collection;
@@ -22,17 +22,26 @@ class AdminController extends Controller
             'group' => $group,
             'token' => $token,
             'participants' => $group->participants()->get(),
+            'missingWishlists' => $group->missingWishlists(),
             'rules' => $this->rulesFor($group),
         ]);
     }
 
     public function update(Request $request, Group $group, string $token): RedirectResponse
     {
-        $group->update($request->validate([
+        $data = $request->validate([
             'name' => ['required', 'string', 'max:80'],
             'budget' => ['nullable', 'string', 'max:40'],
             'exchange_date' => ['nullable', 'date'],
-        ]));
+            'wishlists_required' => ['sometimes', 'boolean'],
+        ]);
+
+        // The wishlist step happens before the draw, so it can't change once names are drawn.
+        if ($group->isDrawn()) {
+            unset($data['wishlists_required']);
+        }
+
+        $group->update($data);
 
         return $this->back($group, $token, 'Details saved.');
     }
@@ -116,9 +125,17 @@ class AdminController extends Controller
         return $this->back($group, $token, 'Rule removed.');
     }
 
-    public function draw(Group $group, string $token, SecretSantaDrawer $drawer): RedirectResponse
+    public function draw(Group $group, string $token, SecretGiverDrawer $drawer): RedirectResponse
     {
         $this->ensureNotDrawn($group);
+
+        $missing = $group->missingWishlists();
+
+        if ($missing->isNotEmpty()) {
+            throw ValidationException::withMessages([
+                'draw' => 'Still waiting on a wishlist from '.$missing->join(', ', ' and ').'.',
+            ]);
+        }
 
         try {
             $group->performDraw($drawer);

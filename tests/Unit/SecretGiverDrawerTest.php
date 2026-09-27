@@ -1,7 +1,7 @@
 <?php
 
 use App\Exceptions\ImpossibleDrawException;
-use App\Services\SecretSantaDrawer;
+use App\Services\SecretGiverDrawer;
 
 function assertValidDraw(array $ids, array $forbidden, array $result): void
 {
@@ -17,11 +17,11 @@ function assertValidDraw(array $ids, array $forbidden, array $result): void
 it('produces a valid draw with no self-matches', function () {
     $ids = [1, 2, 3, 4, 5];
 
-    assertValidDraw($ids, [], (new SecretSantaDrawer)->draw($ids));
+    assertValidDraw($ids, [], (new SecretGiverDrawer)->draw($ids));
 });
 
 it('always respects exclusions across many random draws', function () {
-    $drawer = new SecretSantaDrawer;
+    $drawer = new SecretGiverDrawer;
 
     for ($run = 0; $run < 500; $run++) {
         $ids = range(1, random_int(3, 12));
@@ -41,15 +41,15 @@ it('always respects exclusions across many random draws', function () {
 
 it('throws when exclusions make a draw impossible', function () {
     // Person 1 is excluded from everyone else.
-    (new SecretSantaDrawer)->draw([1, 2, 3], [[1, 2], [1, 3]]);
+    (new SecretGiverDrawer)->draw([1, 2, 3], [[1, 2], [1, 3]]);
 })->throws(ImpossibleDrawException::class);
 
 it('requires at least three participants', function () {
-    (new SecretSantaDrawer)->draw([1, 2]);
+    (new SecretGiverDrawer)->draw([1, 2]);
 })->throws(ImpossibleDrawException::class);
 
 it('is not always the same result', function () {
-    $drawer = new SecretSantaDrawer;
+    $drawer = new SecretGiverDrawer;
     $results = [];
 
     for ($i = 0; $i < 50; $i++) {

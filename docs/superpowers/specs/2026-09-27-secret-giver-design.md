@@ -1,14 +1,14 @@
-# Secret Santa Generator: Design & Plan
+# Secret Giver Generator: Design & Plan
 
 ## Context
-A Secret Santa app for family and friends where **nobody signs up**. The organizer creates a group and shares **one group link**. Each person opens the link, taps their name, and sees who they're buying for. A name locks to the first device that claims it, and the organizer can reset a name if someone taps the wrong one. The first version includes **exclusions**, a **budget and exchange date**, **wishlists**, and support for **multiple groups**.
+A Secret Giver app for family and friends where **nobody signs up**. The organizer creates a group and shares **one group link**. Each person opens the link, taps their name, and sees who they're buying for. A name locks to the first device that claims it, and the organizer can reset a name if someone taps the wrong one. The first version includes **exclusions**, a **budget and exchange date**, **wishlists**, and support for **multiple groups**.
 
-Stack: **Laravel** (latest, installed with `laravel new`), SQLite, Blade, Tailwind (the default Vite setup), Alpine.js, and Pest. It lives at `~/Herd/secret-santa` and Herd serves it at `http://secret-santa.test`. The environment is already checked: PHP 8.4, and `composer`, `laravel` and `herd` are all available.
+Stack: **Laravel** (latest, installed with `laravel new`), SQLite, Blade, Tailwind (the default Vite setup), Alpine.js, and Pest. It lives at `~/Herd/secret-giver` and Herd serves it at `http://secret-giver.test`. The environment is already checked: PHP 8.4, and `composer`, `laravel` and `herd` are all available.
 
 ## Identity without accounts
 - **Group link:** `/g/{slug}`. The slug is 12 random characters and can't be guessed. Everyone uses this link.
 - **Admin link:** `/g/{slug}/admin/{adminToken}`. The token is 40 random characters, stored as a hash and compared with `hash_equals`. Only the organizer has this link. The browser keeps a "My groups" list of admin links in `localStorage`, which covers multiple groups, and the admin page also shows a "Save this link" copy box. Losing the admin link means losing admin access; that's the trade-off for having no accounts.
-- **Claims:** tapping a name opens a dialog asking "Are you Alice?". Confirming atomically sets `claim_token_hash`, but only where it is still null, so two people can't claim the same name at once. It also sets a Laravel-encrypted cookie `santa_{slug}` = `{participantId}|{token}` that lasts one year. When someone returns, the cookie takes them straight to their reveal page.
+- **Claims:** tapping a name opens a dialog asking "Are you Alice?". Confirming atomically sets `claim_token_hash`, but only where it is still null, so two people can't claim the same name at once. It also sets a Laravel-encrypted cookie `giver_{slug}` = `{participantId}|{token}` that lasts one year. When someone returns, the cookie takes them straight to their reveal page.
 - **The organizer can't see who got whom.** The admin page shows only who has claimed a name and who has written a wishlist, so the organizer can play too.
 
 ## Data model (3 migrations)
@@ -16,7 +16,7 @@ Stack: **Laravel** (latest, installed with `laravel new`), SQLite, Blade, Tailwi
 - `participants`: id, group_id (FK, cascade), name, assigned_to_id (nullable self-FK), claim_token_hash (nullable), claimed_at (nullable), wishlist (text, nullable), timestamps; unique(group_id, name)
 - `exclusions`: id, group_id, giver_id, receiver_id, unique(giver_id, receiver_id). Checking "both ways" for a couple creates two rows.
 
-## Draw algorithm (`app/Services/SecretSantaDrawer.php`)
+## Draw algorithm (`app/Services/SecretGiverDrawer.php`)
 A pure class with `draw(array $ids, array $forbiddenPairs): array<giverId, receiverId>`:
 - **Search:** randomized backtracking, with givers shuffled and candidate receivers shuffled. No one can draw themselves or anyone they're excluded from.
 - **Impossible rules:** if no valid assignment exists, it throws `ImpossibleDrawException`, and the admin page shows "These exclusions make a draw impossible. Remove one and try again."
@@ -42,11 +42,11 @@ Code layout: controllers `GroupController`, `AdminController`, `ClaimController`
 Designed mobile-first, since most people will open the link on their phones. The look is festive and warm but clean: a deep green and cranberry palette, a display font for headings, and a gift-box reveal animation done in CSS and Alpine. All output goes through Blade's escaping, including names and wishlists. I'll use the frontend-design skill when building the views.
 
 ## Implementation steps
-1. **Set up the project:** `cd ~/Herd && laravel new secret-santa --pest --database=sqlite --no-interaction`, then move the session there with `change_directory`, then `git init` and commit the scaffold.
-2. **Save the design:** copy this design to `docs/superpowers/specs/2026-09-27-secret-santa-design.md` and commit it.
+1. **Set up the project:** `cd ~/Herd && laravel new secret-giver --pest --database=sqlite --no-interaction`, then move the session there with `change_directory`, then `git init` and commit the scaffold.
+2. **Save the design:** copy this design to `docs/superpowers/specs/2026-09-27-secret-giver-design.md` and commit it.
 3. **Build with TDD:** write the tests before each piece.
    - Migrations and models.
-   - `SecretSantaDrawer` with Pest unit tests (below).
+   - `SecretGiverDrawer` with Pest unit tests (below).
    - Group creation and admin token auth.
    - Admin actions: participants, exclusions, draw, undo, reset claim.
    - Claim flow and cookie.
@@ -55,7 +55,7 @@ Designed mobile-first, since most people will open the link on their phones. The
 5. **Run the full test suite and verify by hand** (below).
 
 ## Verification
-- **Unit tests (`SecretSantaDrawer`):**
+- **Unit tests (`SecretGiverDrawer`):**
   - Run the draw 500 times with random exclusions: nobody draws themselves, nobody draws an excluded person, and the result is a bijection.
   - An impossible set of rules throws `ImpossibleDrawException`.
 - **Feature tests:**
@@ -67,7 +67,7 @@ Designed mobile-first, since most people will open the link on their phones. The
   - A reset claim frees the name.
   - Editing a wishlist without the claim cookie returns 403.
   - Editing is locked after the draw.
-- **By hand at `http://secret-santa.test`,** using the in-app browser:
+- **By hand at `http://secret-giver.test`,** using the in-app browser:
   1. Create a group of 5 people with a couple excluded.
   2. Draw.
   3. Open the group link, claim a name and reveal the match.

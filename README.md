@@ -1,10 +1,10 @@
-# Secret Santa
+# Secret Giver
 
-A no-signup Secret Santa draw for family and friends.
+A no-signup Secret Giver draw for family and friends.
 
 1. The organizer adds everyone's name, and optionally a budget, an exchange date, and rules (e.g. couples don't draw each other).
 2. The organizer draws names and shares **one group link**.
-3. Each person opens the link, taps their own name, and flips their gift tag to see who they're buying for. They can also leave a wishlist for their Santa.
+3. Each person opens the link, taps their own name, and flips their gift tag to see who they're buying for. They can also leave a wishlist for their Giver.
 
 ## How identity works without accounts
 
@@ -14,7 +14,7 @@ A no-signup Secret Santa draw for family and friends.
 
 ## Running locally
 
-Served by Laravel Herd at http://secret-santa.test.
+Served by Laravel Herd at http://secret-giver.test.
 
 ```bash
 composer install
@@ -28,4 +28,4 @@ php artisan migrate
 ./vendor/bin/pest
 ```
 
-The design spec is in `docs/superpowers/specs/2026-09-27-secret-santa-design.md`.
+The design spec is in `docs/superpowers/specs/2026-09-27-secret-giver-design.md`.

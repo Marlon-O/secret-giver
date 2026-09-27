@@ -17,7 +17,7 @@ class ClaimCookie
 
     public static function name(Group $group): string
     {
-        return "santa_{$group->slug}";
+        return "giver_{$group->slug}";
     }
 
     public static function make(Group $group, Participant $participant, string $token): SymfonyCookie

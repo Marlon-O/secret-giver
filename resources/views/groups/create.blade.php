@@ -10,14 +10,14 @@
     </section>
 
     {{-- Groups this browser has organized --}}
-    <section x-data="{ groups: window.santaGroups.all() }" x-show="groups.length" x-cloak class="mb-8">
+    <section x-data="{ groups: window.giverGroups.all() }" x-show="groups.length" x-cloak class="mb-8">
         <h2 class="label !text-paper/60">Your groups</h2>
         <ul class="space-y-2">
             <template x-for="group in groups" :key="group.slug">
                 <li class="flex items-center gap-3 rounded-xl bg-pine-soft/80 px-4 py-3 ring-1 ring-paper/10">
                     <a :href="group.adminUrl" class="flex-1 truncate font-semibold text-paper hover:text-twine" x-text="group.name"></a>
                     <button type="button" class="text-sm text-paper/50 hover:text-paper"
-                            @click="window.santaGroups.forget(group.slug); groups = window.santaGroups.all()"
+                            @click="window.giverGroups.forget(group.slug); groups = window.giverGroups.all()"
                             :aria-label="`Remove ${group.name} from this list`">Hide</button>
                 </li>
             </template>
@@ -37,7 +37,7 @@
         <div class="space-y-4">
             <div>
                 <label for="name" class="label">Group name</label>
-                <input id="name" name="name" class="input" required maxlength="80" value="{{ old('name') }}" placeholder="Family Christmas {{ now()->year }}">
+                <input id="name" name="name" class="input" required maxlength="80" value="{{ old('name') }}" placeholder="Office gift swap {{ now()->year }}">
                 <x-errors keys="name" />
             </div>
 
@@ -52,6 +52,15 @@
                 </div>
             </div>
             <x-errors :keys="['budget', 'exchange_date']" />
+
+            <label class="flex items-start gap-3 rounded-xl bg-ink/[.03] p-4">
+                <input type="hidden" name="wishlists_required" value="0">
+                <input type="checkbox" name="wishlists_required" value="1" @checked(old('wishlists_required')) class="mt-1 size-4 shrink-0 accent-pine">
+                <span>
+                    <span class="block font-semibold">Collect wishlists first</span>
+                    <span class="block text-sm text-ink-soft">Everyone picks their name and writes a wishlist before you draw, so each person sees their match's wishlist the moment they flip their tag.</span>
+                </span>
+            </label>
 
             <fieldset>
                 <legend class="label">Who's taking part?</legend>

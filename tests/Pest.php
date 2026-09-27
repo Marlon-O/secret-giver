@@ -2,7 +2,7 @@
 
 use App\Models\Group;
 use App\Models\Participant;
-use App\Services\SecretSantaDrawer;
+use App\Services\SecretGiverDrawer;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Support\Collection;
 use Tests\TestCase;
@@ -25,7 +25,7 @@ function groupWith(array $names, bool $drawn = false): array
     ]);
 
     if ($drawn) {
-        $group->performDraw(new SecretSantaDrawer);
+        $group->performDraw(new SecretGiverDrawer);
     }
 
     return [$group->fresh(), $people->map->fresh()];

@@ -1,6 +1,6 @@
 <x-layouts.app :title="$group->name">
     <section class="mb-8 text-center">
-        <p class="label !text-twine">Secret Santa</p>
+        <p class="label !text-twine">Secret Giver</p>
         <h1 class="font-display text-4xl leading-tight text-paper">{{ $group->name }}</h1>
         @if ($group->budget || $group->exchange_date)
             <p class="mt-2 text-paper/70">
@@ -11,7 +11,7 @@
         @endif
     </section>
 
-    @if (! $group->isDrawn())
+    @if (! $group->canBeClaimed())
         <div class="card text-center">
             <h2 class="section-title">Waiting for the organizer to draw names</h2>
             <p class="mt-2 text-ink-soft">Come back to this same link once they have. You'll pick your name here and see who you're buying for.</p>
@@ -20,7 +20,13 @@
     @else
         <div x-data="{ picked: null }">
             <h2 class="mb-1 text-center font-display text-2xl text-paper">Which one is you?</h2>
-            <p class="mb-6 text-center text-paper/70">Tap your own name. Once you pick it, it's yours on this device.</p>
+            <p class="mb-6 text-center text-paper/70">
+                @if ($group->isDrawn())
+                    Tap your own name. Once you pick it, it's yours on this device.
+                @else
+                    Tap your own name and write your wishlist. Once names are drawn, come back to this link and tap your name again to see who you're buying for.
+                @endif
+            </p>
 
             <x-errors keys="claim" class="!bg-paper mb-6" />
 

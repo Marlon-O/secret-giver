@@ -1,10 +1,10 @@
 import Alpine from 'alpinejs';
 import focus from '@alpinejs/focus';
 
-const STORAGE_KEY = 'santa.groups';
+const STORAGE_KEY = 'giver.groups';
 
 // Groups this browser organizes, so the landing page can list them. Best effort only.
-window.santaGroups = {
+window.giverGroups = {
     all() {
         try {
             return JSON.parse(localStorage.getItem(STORAGE_KEY)) ?? [];

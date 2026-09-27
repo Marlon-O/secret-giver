@@ -29,6 +29,7 @@ class GroupController extends Controller
             'name' => ['required', 'string', 'max:80'],
             'budget' => ['nullable', 'string', 'max:40'],
             'exchange_date' => ['nullable', 'date'],
+            'wishlists_required' => ['sometimes', 'boolean'],
             'participants' => ['required', 'array', 'min:3', 'max:100'],
             'participants.*' => ['string', 'max:60', 'distinct:ignore_case'],
         ], [
@@ -41,6 +42,7 @@ class GroupController extends Controller
                 'name' => $data['name'],
                 'budget' => $data['budget'] ?? null,
                 'exchange_date' => $data['exchange_date'] ?? null,
+                'wishlists_required' => $data['wishlists_required'] ?? false,
             ]);
 
             foreach ($data['participants'] as $name) {

@@ -4,7 +4,7 @@ namespace App\Services;
 
 use App\Exceptions\ImpossibleDrawException;
 
-class SecretSantaDrawer
+class SecretGiverDrawer
 {
     /**
      * Assign every giver a unique receiver.

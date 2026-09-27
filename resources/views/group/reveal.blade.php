@@ -1,6 +1,6 @@
 <x-layouts.app :title="$group->name">
     <div x-data="{
-             key: @js("santa.revealed.{$group->slug}.{$me->id}"),
+             key: @js("giver.revealed.{$group->slug}.{$me->id}"),
              revealed: false,
              init() {
                  try { this.revealed = sessionStorage.getItem(this.key) === '1' } catch {}
@@ -37,7 +37,7 @@
                             <p class="font-hand text-5xl leading-tight font-bold break-words" x-text="revealed ? @js($match?->name) : ''"></p>
                             <div class="my-3 border-t border-dashed border-ink/30"></div>
                             <p class="text-xs font-semibold tracking-[.14em] text-ink/60 uppercase">From</p>
-                            <p class="font-hand text-2xl">Your Secret Santa</p>
+                            <p class="font-hand text-2xl">Your Secret Giver</p>
                         </div>
                     </x-tag>
                 </div>
@@ -73,11 +73,11 @@
 
             <section class="card">
                 <h2 class="section-title">Your wishlist</h2>
-                <p class="mt-1 text-ink-soft">Your Secret Santa will see this. A few ideas, sizes or links help a lot.</p>
+                <p class="mt-1 text-ink-soft">Your Secret Giver will see this. A few ideas, sizes or links help a lot.</p>
                 <form method="POST" action="{{ route('group.wishlist', $group) }}" class="mt-4">
                     @csrf @method('PATCH')
                     <label for="wishlist" class="sr-only">Your wishlist</label>
-                    <textarea id="wishlist" name="wishlist" rows="4" maxlength="2000" class="input"
+                    <textarea id="wishlist" name="wishlist" rows="4" maxlength="2000" class="input" @required($group->wishlists_required)
                               placeholder="Warm socks (size 9), a mystery novel, good coffee…">{{ old('wishlist', $me->wishlist) }}</textarea>
                     <x-errors keys="wishlist" />
                     <button class="btn-primary mt-3 w-full">Save wishlist</button>

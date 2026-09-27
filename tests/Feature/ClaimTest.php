@@ -21,11 +21,11 @@ it('claims a name, sets a cookie and shows the match', function () {
 
     $response = $this->post("/g/{$group->slug}/claim/{$people['Alice']->id}");
 
-    $response->assertRedirect("/g/{$group->slug}/me")->assertCookie("santa_{$group->slug}");
+    $response->assertRedirect("/g/{$group->slug}/me")->assertCookie("giver_{$group->slug}");
     expect($people['Alice']->fresh()->isClaimed())->toBeTrue();
 
     $match = $people['Alice']->fresh()->assignedTo;
-    $this->withCookie("santa_{$group->slug}", $response->getCookie("santa_{$group->slug}")->getValue())
+    $this->withCookie("giver_{$group->slug}", $response->getCookie("giver_{$group->slug}")->getValue())
         ->get("/g/{$group->slug}/me")
         ->assertOk()
         ->assertSee($match->name);
@@ -38,7 +38,7 @@ it('rejects claiming a name that is already claimed', function () {
     $this->post("/g/{$group->slug}/claim/{$people['Alice']->id}")
         ->assertRedirect("/g/{$group->slug}")
         ->assertSessionHasErrors('claim')
-        ->assertCookieMissing("santa_{$group->slug}");
+        ->assertCookieMissing("giver_{$group->slug}");
 });
 
 it('cannot claim before the draw', function () {
@@ -53,7 +53,7 @@ it('sends a returning device straight to its reveal page', function () {
     [$group, $people] = groupWith(['Alice', 'Bob', 'Carol'], drawn: true);
     $token = $people['Alice']->claim();
 
-    $this->withCookie("santa_{$group->slug}", "{$people['Alice']->id}|{$token}")
+    $this->withCookie("giver_{$group->slug}", "{$people['Alice']->id}|{$token}")
         ->get("/g/{$group->slug}")
         ->assertRedirect("/g/{$group->slug}/me");
 });
@@ -62,7 +62,7 @@ it('ignores a forged or stale cookie', function () {
     [$group, $people] = groupWith(['Alice', 'Bob', 'Carol'], drawn: true);
     $people['Alice']->claim();
 
-    $this->withCookie("santa_{$group->slug}", "{$people['Alice']->id}|forged")
+    $this->withCookie("giver_{$group->slug}", "{$people['Alice']->id}|forged")
         ->get("/g/{$group->slug}/me")
         ->assertRedirect("/g/{$group->slug}");
 });
@@ -72,7 +72,7 @@ it('stops recognising a device after the organizer resets its claim', function (
     $token = $people['Alice']->claim();
     $people['Alice']->fresh()->releaseClaim();
 
-    $this->withCookie("santa_{$group->slug}", "{$people['Alice']->id}|{$token}")
+    $this->withCookie("giver_{$group->slug}", "{$people['Alice']->id}|{$token}")
         ->get("/g/{$group->slug}/me")
         ->assertRedirect("/g/{$group->slug}");
 });
@@ -82,7 +82,7 @@ it('shows the budget, date and the match wishlist', function () {
     $token = $people['Alice']->claim();
     $people['Alice']->assignedTo->update(['wishlist' => 'Fuzzy socks <script>']);
 
-    $this->withCookie("santa_{$group->slug}", "{$people['Alice']->id}|{$token}")
+    $this->withCookie("giver_{$group->slug}", "{$people['Alice']->id}|{$token}")
         ->get("/g/{$group->slug}/me")
         ->assertOk()
         ->assertSee($group->budget)
@@ -93,7 +93,7 @@ it('saves my wishlist', function () {
     [$group, $people] = groupWith(['Alice', 'Bob', 'Carol'], drawn: true);
     $token = $people['Alice']->claim();
 
-    $this->withCookie("santa_{$group->slug}", "{$people['Alice']->id}|{$token}")
+    $this->withCookie("giver_{$group->slug}", "{$people['Alice']->id}|{$token}")
         ->patch("/g/{$group->slug}/me/wishlist", ['wishlist' => 'Books, tea'])
         ->assertRedirect("/g/{$group->slug}/me");
 
