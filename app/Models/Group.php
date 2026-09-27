@@ -2,7 +2,9 @@
 
 namespace App\Models;
 
+use App\Exceptions\ImpossibleDrawException;
 use App\Services\SecretSantaDrawer;
+use Database\Factories\GroupFactory;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\HasMany;
@@ -11,7 +13,7 @@ use Illuminate\Support\Str;
 
 class Group extends Model
 {
-    /** @use HasFactory<\Database\Factories\GroupFactory> */
+    /** @use HasFactory<GroupFactory> */
     use HasFactory;
 
     protected $fillable = ['name', 'budget', 'exchange_date'];
@@ -70,7 +72,7 @@ class Group extends Model
     }
 
     /**
-     * @throws \App\Exceptions\ImpossibleDrawException
+     * @throws ImpossibleDrawException
      */
     public function performDraw(SecretSantaDrawer $drawer): void
     {

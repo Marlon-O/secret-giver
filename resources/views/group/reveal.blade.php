@@ -1,6 +1,6 @@
 <x-layouts.app :title="$group->name">
     <div x-data="{
-             key: @js("santa.revealed.{$group->slug}"),
+             key: @js("santa.revealed.{$group->slug}.{$me->id}"),
              revealed: false,
              init() {
                  try { this.revealed = sessionStorage.getItem(this.key) === '1' } catch {}
@@ -18,11 +18,12 @@
             <p class="mt-2 text-paper/70" x-show="revealed" x-cloak>Keep it a secret until the exchange.</p>
         </section>
 
-        {{-- Signature moment: the tag flips to show the match. --}}
-        <div class="flip sway mx-auto mt-6 w-64 sm:w-72">
+        {{-- Signature moment: the tag flips to show the match. The twine stays put while the tag turns. --}}
+        <div class="flip sway relative mx-auto mt-6 w-64 sm:w-72">
+            <x-twine />
             <div class="flip-inner" :class="revealed && 'is-flipped'">
                 <button type="button" class="flip-face block w-full text-left" @click="reveal()" :tabindex="revealed ? -1 : 0" :aria-hidden="revealed">
-                    <x-tag>
+                    <x-tag :string="false">
                         <span class="block text-xs font-semibold tracking-[.14em] text-ink/60 uppercase">For {{ $me->name }}'s eyes only</span>
                         <span class="mt-6 block font-display text-3xl">Tap to flip</span>
                         <span class="mt-6 mb-3 block text-sm text-ink/60">to see who you're buying for</span>

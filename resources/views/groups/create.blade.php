@@ -1,8 +1,8 @@
 <x-layouts.app>
     <section class="mb-10">
-        <h1 class="font-display text-[2.6rem] leading-[1.05] text-paper sm:text-5xl">
+        <h1 class="font-display text-[2.35rem] leading-[1.05] text-paper sm:text-5xl">
             Draw names.<br>
-            <span class="text-twine">Nobody signs up.</span>
+            <span class="text-twine">Nobody signs&nbsp;up.</span>
         </h1>
         <p class="mt-4 max-w-md text-lg text-paper/75">
             Add everyone's name and share one link. Each person taps their name to see who they're buying for, and nobody else can see it, not even you.

@@ -9,6 +9,7 @@ use App\Models\Participant;
 use App\Services\SecretSantaDrawer;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
+use Illuminate\Support\Collection;
 use Illuminate\Validation\Rule;
 use Illuminate\Validation\ValidationException;
 use Illuminate\View\View;
@@ -138,7 +139,7 @@ class AdminController extends Controller
     /**
      * Exclusions for display, folding a pair that goes both ways into one "mutual" rule.
      *
-     * @return \Illuminate\Support\Collection<int, array{exclusion: Exclusion, mutual: bool}>
+     * @return Collection<int, array{exclusion: Exclusion, mutual: bool}>
      */
     private function rulesFor(Group $group)
     {

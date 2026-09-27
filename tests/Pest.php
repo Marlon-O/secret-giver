@@ -1,6 +1,7 @@
 <?php
 
 use App\Models\Group;
+use App\Models\Participant;
 use App\Services\SecretSantaDrawer;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Support\Collection;
@@ -13,7 +14,7 @@ pest()->extend(TestCase::class)
 /**
  * Create a group with the given participant names. The admin token is always "secret-admin-token".
  *
- * @return array{0: Group, 1: Collection<string, \App\Models\Participant>}
+ * @return array{0: Group, 1: Collection<string, Participant>}
  */
 function groupWith(array $names, bool $drawn = false): array
 {

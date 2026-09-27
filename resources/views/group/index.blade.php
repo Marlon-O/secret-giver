@@ -6,7 +6,7 @@
             <p class="mt-2 text-paper/70">
                 @if ($group->budget) {{ $group->budget }} budget @endif
                 @if ($group->budget && $group->exchange_date) · @endif
-                @if ($group->exchange_date) Exchange on {{ $group->exchange_date->format('l, F j') }} @endif
+                @if ($group->exchange_date) Exchange {{ $group->exchange_date->format('D, M j') }} @endif
             </p>
         @endif
     </section>
