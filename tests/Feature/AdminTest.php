@@ -41,6 +41,16 @@ it('adds a mutual exclusion for a couple', function () {
         ]);
 });
 
+it('removes both directions of a couple rule at once', function () {
+    [$group, $people] = groupWith(['Alice', 'Bob', 'Carol', 'Dave']);
+    $rule = $group->exclusions()->create(['giver_id' => $people['Alice']->id, 'receiver_id' => $people['Bob']->id]);
+    $group->exclusions()->create(['giver_id' => $people['Bob']->id, 'receiver_id' => $people['Alice']->id]);
+
+    $this->delete(adminUrl($group, "exclusions/{$rule->id}"), ['both' => '1'])->assertRedirect(adminUrl($group));
+
+    expect($group->exclusions()->count())->toBe(0);
+});
+
 it('draws, respecting exclusions', function () {
     [$group, $people] = groupWith(['Alice', 'Bob', 'Carol', 'Dave']);
     $group->exclusions()->create(['giver_id' => $people['Alice']->id, 'receiver_id' => $people['Bob']->id]);

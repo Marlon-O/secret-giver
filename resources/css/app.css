@@ -4,6 +4,132 @@
 @source '../../storage/framework/views/*.php';
 
 @theme {
-    --font-sans: 'Instrument Sans', ui-sans-serif, system-ui, sans-serif, 'Apple Color Emoji', 'Segoe UI Emoji',
-        'Segoe UI Symbol', 'Noto Color Emoji';
+    --font-sans: 'Figtree', ui-sans-serif, system-ui, sans-serif;
+    --font-display: 'Young Serif', ui-serif, Georgia, serif;
+    --font-hand: 'Kalam', 'Comic Sans MS', cursive;
+
+    --color-pine: #15382e;
+    --color-pine-soft: #1d4a3d;
+    --color-pine-ink: #0e2921;
+    --color-paper: #fbfaf6;
+    --color-ink: #211c18;
+    --color-ink-soft: #5d554d;
+    --color-kraft: #cdaa7d;
+    --color-kraft-dark: #a9855a;
+    --color-cranberry: #b0213a;
+    --color-cranberry-dark: #8e1a2e;
+    --color-twine: #ddb15a;
+}
+
+@layer base {
+    html {
+        -webkit-tap-highlight-color: transparent;
+    }
+
+    body {
+        background-color: var(--color-pine);
+        /* Wrapping-paper pattern: tiny four-point stars. */
+        background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='56' height='56' viewBox='0 0 56 56'%3E%3Cg fill='%23ddb15a' fill-opacity='.09'%3E%3Cpath d='M14 8l1.6 4.4L20 14l-4.4 1.6L14 20l-1.6-4.4L8 14l4.4-1.6z'/%3E%3Cpath d='M42 36l1.2 3.3 3.3 1.2-3.3 1.2L42 45l-1.2-3.3-3.3-1.2 3.3-1.2z'/%3E%3C/g%3E%3C/svg%3E");
+    }
+
+    :focus-visible {
+        outline: 3px solid var(--color-twine);
+        outline-offset: 2px;
+    }
+
+    [x-cloak] {
+        display: none !important;
+    }
+}
+
+@utility card {
+    @apply rounded-2xl bg-paper p-5 text-ink shadow-[0_20px_40px_-24px_rgba(0,0,0,.6)] sm:p-7;
+}
+
+@utility label {
+    @apply mb-1.5 block text-xs font-semibold tracking-[.12em] text-ink-soft uppercase;
+}
+
+@utility input {
+    @apply w-full rounded-lg border border-ink/15 bg-white px-3.5 py-2.5 text-base text-ink placeholder:text-ink/35 focus:border-pine focus:ring-2 focus:ring-pine/20 focus:outline-none;
+}
+
+@utility btn {
+    @apply inline-flex items-center justify-center gap-2 rounded-full px-5 py-3 font-semibold transition-colors disabled:cursor-not-allowed disabled:opacity-50;
+}
+
+@utility btn-primary {
+    @apply btn bg-cranberry text-white hover:bg-cranberry-dark;
+}
+
+@utility btn-quiet {
+    @apply btn border border-ink/15 bg-transparent text-ink hover:bg-ink/5;
+}
+
+@utility btn-link {
+    @apply text-sm font-semibold text-ink-soft underline decoration-ink/25 underline-offset-4 hover:text-ink;
+}
+
+@utility section-title {
+    @apply font-display text-xl text-ink;
+}
+
+@layer components {
+    /* A kraft-paper gift tag: clipped top corners and a punched hole. */
+    .tag {
+        position: relative;
+        background:
+            radial-gradient(circle at 50% 18px, var(--color-pine) 0 7px, var(--color-kraft-dark) 7.5px 9.5px, transparent 10px),
+            linear-gradient(160deg, #d6b58a, var(--color-kraft) 55%, #c49f70);
+        clip-path: polygon(22% 0, 78% 0, 100% 14%, 100% 100%, 0 100%, 0 14%);
+        border-radius: 0 0 10px 10px;
+        color: var(--color-ink);
+    }
+
+    .tag-on-paper {
+        background:
+            radial-gradient(circle at 50% 18px, var(--color-paper) 0 7px, var(--color-kraft-dark) 7.5px 9.5px, transparent 10px),
+            linear-gradient(160deg, #d6b58a, var(--color-kraft) 55%, #c49f70);
+    }
+}
+
+/* Reveal: the tag flips over. */
+.flip {
+    perspective: 1200px;
+}
+
+.flip-inner {
+    position: relative;
+    transform-style: preserve-3d;
+    transition: transform 0.9s cubic-bezier(0.2, 0.8, 0.2, 1);
+}
+
+.flip-inner.is-flipped {
+    transform: rotateY(180deg);
+}
+
+.flip-face {
+    backface-visibility: hidden;
+    -webkit-backface-visibility: hidden;
+}
+
+.flip-back {
+    position: absolute;
+    inset: 0;
+    transform: rotateY(180deg);
+}
+
+.sway {
+    transform-origin: 50% -40px;
+    animation: sway 4s ease-in-out infinite;
+}
+
+@keyframes sway {
+    0%, 100% { transform: rotate(-2deg); }
+    50% { transform: rotate(2deg); }
+}
+
+@media (prefers-reduced-motion: reduce) {
+    .flip-inner { transition: none; }
+    .sway { animation: none; }
 }

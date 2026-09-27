@@ -21,8 +21,7 @@ class AdminController extends Controller
             'group' => $group,
             'token' => $token,
             'participants' => $group->participants()->get(),
-            'exclusions' => $group->exclusions()->with('giver', 'receiver')->get()
-                ->sortBy(fn (Exclusion $e) => [$e->giver->name, $e->receiver->name]),
+            'rules' => $this->rulesFor($group),
         ]);
     }
 
@@ -100,9 +99,16 @@ class AdminController extends Controller
         return $this->back($group, $token, 'Rule added.');
     }
 
-    public function removeExclusion(Group $group, string $token, Exclusion $exclusion): RedirectResponse
+    public function removeExclusion(Request $request, Group $group, string $token, Exclusion $exclusion): RedirectResponse
     {
         $this->ensureNotDrawn($group);
+
+        if ($request->boolean('both')) {
+            $group->exclusions()
+                ->where('giver_id', $exclusion->receiver_id)
+                ->where('receiver_id', $exclusion->giver_id)
+                ->delete();
+        }
 
         $exclusion->delete();
 
@@ -127,6 +133,27 @@ class AdminController extends Controller
         $group->undoDraw();
 
         return $this->back($group, $token, 'Draw undone. You can edit the group and draw again.');
+    }
+
+    /**
+     * Exclusions for display, folding a pair that goes both ways into one "mutual" rule.
+     *
+     * @return \Illuminate\Support\Collection<int, array{exclusion: Exclusion, mutual: bool}>
+     */
+    private function rulesFor(Group $group)
+    {
+        $exclusions = $group->exclusions()->with('giver', 'receiver')->get();
+        $pairs = $exclusions->mapWithKeys(fn (Exclusion $e) => ["{$e->giver_id}-{$e->receiver_id}" => true]);
+
+        return $exclusions
+            ->map(fn (Exclusion $e) => [
+                'exclusion' => $e,
+                'mutual' => $pairs->has("{$e->receiver_id}-{$e->giver_id}"),
+            ])
+            // Keep one row per mutual pair.
+            ->reject(fn ($rule) => $rule['mutual'] && $rule['exclusion']->giver_id > $rule['exclusion']->receiver_id)
+            ->sortBy(fn ($rule) => $rule['exclusion']->giver->name)
+            ->values();
     }
 
     private function ensureNotDrawn(Group $group): void
