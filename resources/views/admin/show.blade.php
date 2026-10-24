@@ -31,7 +31,7 @@
         <div class="mt-3 flex gap-2">
             <input readonly value="{{ $adminLink }}" aria-label="Organizer link" class="min-w-0 flex-1 rounded-lg bg-pine-ink/60 px-3 py-2 font-mono text-xs text-paper/80" @focus="$el.select()">
             <button type="button" class="btn shrink-0 bg-paper px-4 py-2 text-sm text-ink hover:bg-white"
-                    @click="navigator.clipboard.writeText(@js($adminLink)); label = 'Copied'; setTimeout(() => label = 'Copy', 2000)"
+                    @click="label = await window.copyLink(@js($adminLink)); setTimeout(() => label = 'Copy', 2000)"
                     x-text="label">Copy</button>
         </div>
     </section>
