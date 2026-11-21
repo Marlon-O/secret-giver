@@ -1,15 +1,8 @@
 <x-layouts.app :title="$group->name">
+    {{-- Always start on "Tap to flip", except when coming back from saving the wishlist on this page. --}}
     <div x-data="{
-             key: @js("giver.revealed.{$group->slug}.{$me->id}"),
-             revealed: false,
-             init() {
-                 try { this.revealed = sessionStorage.getItem(this.key) === '1' } catch {}
-                 if (@js((bool) session('status'))) this.revealed = true
-             },
-             reveal() {
-                 this.revealed = true
-                 try { sessionStorage.setItem(this.key, '1') } catch {}
-             },
+             revealed: @js((bool) session('status') || $errors->has('wishlist')),
+             reveal() { this.revealed = true },
          }">
         <section class="mb-2 text-center">
             <p class="label !text-twine">{{ $group->name }}</p>

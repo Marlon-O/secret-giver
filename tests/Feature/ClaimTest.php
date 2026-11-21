@@ -89,6 +89,18 @@ it('shows the budget, date and the match wishlist', function () {
         ->assertSee('Fuzzy socks &lt;script&gt;', escape: false);
 });
 
+it('starts the reveal on the unflipped tag', function () {
+    [$group, $people] = groupWith(['Alice', 'Bob', 'Carol'], drawn: true);
+    $token = $people['Alice']->claim();
+
+    $this->withCookie("giver_{$group->slug}", "{$people['Alice']->id}|{$token}")
+        ->get("/g/{$group->slug}/me")
+        ->assertOk()
+        ->assertSee('Tap to flip')
+        ->assertSee('revealed: false', escape: false)
+        ->assertDontSee('sessionStorage', escape: false);
+});
+
 it('saves my wishlist', function () {
     [$group, $people] = groupWith(['Alice', 'Bob', 'Carol'], drawn: true);
     $token = $people['Alice']->claim();
